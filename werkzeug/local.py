@@ -138,11 +138,10 @@ class Local(object):
 
 
 class LocalManager(object):
-    """
-    Local objects cannot manage themselves. For that you need a local manager.
-    You can pass a local manager multiple locals or add them later by
-    appending them to `manager.locals`.  Everytime the manager cleans up it,
-    will clean up all the data left in the locals for this context.
+    """Local objects cannot manage themselves. For that you need a local
+    manager.  You can pass a local manager multiple locals or add them later
+    by appending them to `manager.locals`.  Everytime the manager cleans up
+    it, will clean up all the data left in the locals for this context.
     """
 
     def __init__(self, locals=None):
@@ -155,8 +154,7 @@ class LocalManager(object):
                 self.locals = [locals]
 
     def get_ident(self):
-        """
-        Return the context identifier the local objects use internally for
+        """Return the context identifier the local objects use internally for
         this context.  You cannot override this method to change the behavior
         but use it to link other context local objects (such as SQLAlchemy's
         scoped sessions) to the Werkzeug locals.
@@ -164,17 +162,15 @@ class LocalManager(object):
         return get_ident()
 
     def cleanup(self):
-        """
-        Manually clean up the data in the locals for this context.  Call this
-        at the end of the request or use `make_middleware()`.
+        """Manually clean up the data in the locals for this context.  Call
+        this at the end of the request or use `make_middleware()`.
         """
         ident = self.get_ident()
         for local in self.locals:
             local.__storage__.pop(ident, None)
 
     def make_middleware(self, app):
-        """
-        Wrap a WSGI application so that cleaning up happens after
+        """Wrap a WSGI application so that cleaning up happens after
         request end.
         """
         def application(environ, start_response):
@@ -182,9 +178,9 @@ class LocalManager(object):
         return application
 
     def middleware(self, func):
-        """
-        Like `make_middleware` but for decorating functions.  Example
-        usage::
+        """Like `make_middleware` but for decorating functions.
+
+        Example usage::
 
             @manager.middleware
             def application(environ, start_response):
@@ -204,8 +200,7 @@ class LocalManager(object):
 
 
 class LocalProxy(object):
-    """
-    Acts as a proxy for a werkzeug local.  Forwards all operations to
+    """Acts as a proxy for a werkzeug local.  Forwards all operations to
     a proxied object.  The only operations not supported for forwarding
     are right handed operands and any kind of assignment.
 
@@ -227,10 +222,9 @@ class LocalProxy(object):
         object.__setattr__(self, '__name__', name)
 
     def _get_current_object(self):
-        """
-        Return the current object.  This is useful if you want the real object
-        behind the proxy at a time for performance reasons or because you want
-        to pass the object into a different context.
+        """Return the current object.  This is useful if you want the real
+        object behind the proxy at a time for performance reasons or because
+        you want to pass the object into a different context.
         """
         try:
             return getattr(self.__local, self.__name__)

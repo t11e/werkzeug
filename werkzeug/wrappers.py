@@ -37,8 +37,7 @@ from werkzeug._internal import _empty_stream, _decode_unicode
 
 
 class BaseRequest(object):
-    """
-    Very basic request object.  This does not implement advanced stuff like
+    """Very basic request object.  This does not implement advanced stuff like
     entity tag parsing or cache controls.  The request object is created with
     the WSGI environment as first argument and will add itself to the WSGI
     environment as ``'werkzeug.request'`` unless it's created with
@@ -70,22 +69,19 @@ class BaseRequest(object):
     is_behind_proxy = False
 
     def __init__(self, environ, populate_request=True):
-        """
-        Per default the request object will be added to the WSGI enviornment
-        as `werkzeug.request` to support the debugging system.  If you don't
-        want that, set `populate_request` to `False`.
-        """
+        """Per default the request object will be added to the WSGI
+        enviornment as `werkzeug.request` to support the debugging system.
+        If you don't want that, set `populate_request` to `False`."""
         self.environ = environ
         if populate_request:
             self.environ['werkzeug.request'] = self
         self._data_stream = None
 
     def from_values(cls, path='/', base_url=None, query_string=None, **options):
-        """
-        Create a new request object based on the values provided.  If environ
-        is given missing values are filled from there.  This method is useful
-        for small scripts when you need to simulate a request from an URL.  Do
-        not use this method for unittesting, there is a full featured client
+        """Create a new request object based on the values provided.  If
+        environ is given missing values are filled from there.  This method is
+        useful for small scripts when you need to simulate a request from an URL.
+        Do not use this method for unittesting, there is a full featured client
         object in `werkzeug.test` that allows to create multipart requests
         etc.
 
@@ -111,8 +107,7 @@ class BaseRequest(object):
     from_values = classmethod(from_values)
 
     def _get_file_stream(self):
-        """
-        Called to get a stream for the file upload.
+        """Called to get a stream for the file upload.
 
         This must provide a file-like class with `read()`, `readline()`
         and `seek()` methods that is both writeable and readable.
@@ -122,8 +117,7 @@ class BaseRequest(object):
         return tempfile.TemporaryFile('w+b')
 
     def _load_form_data(self):
-        """
-        Method used internally to retrieve submitted data.  After calling
+        """Method used internally to retrieve submitted data.  After calling
         this sets `_form` and `_files` on the request object to multi dicts
         filled with the incoming form data.  As a matter of fact the input
         stream will be empty afterwards.
@@ -138,8 +132,7 @@ class BaseRequest(object):
         self._data_stream, self._form, self._files = data
 
     def stream(self):
-        """
-        The parsed stream if the submitted data was not multipart or
+        """The parsed stream if the submitted data was not multipart or
         urlencoded form data.  This stream is the stream left by the CGI
         module after parsing.  This is *not* the WSGI input stream.
         """
@@ -156,17 +149,16 @@ class BaseRequest(object):
     args = cached_property(args)
 
     def data(self):
-        """
-        This reads the buffered incoming data from the client into the string.
-        Usually it's a bad idea to access `data` because a client could send
-        dozens of megabytes or more to cause memory problems on the server.
+        """This reads the buffered incoming data from the client into the
+        string.  Usually it's a bad idea to access `data` because a client
+        could send dozens of megabytes or more to cause memory problems on the
+        server.
         """
         return self.stream.read()
     data = cached_property(data)
 
     def form(self):
-        """
-        Form parameters.  Currently it's not guaranteed that the MultiDict
+        """Form parameters.  Currently it's not guaranteed that the MultiDict
         returned by this function is ordered in the same way as the submitted
         form data.  The reason for this is that the underlaying cgi library
         uses a dict internally and loses the ordering.
@@ -182,8 +174,7 @@ class BaseRequest(object):
     values = cached_property(values)
 
     def files(self):
-        """
-        `MultiDict` object containing all uploaded files.  Each key in
+        """`MultiDict` object containing all uploaded files.  Each key in
         `files` is the name from the ``<input type="file" name="" />``.  Each
         value in `files` is a Werkzeug `FileStorage` object with the following
         members:
@@ -216,8 +207,7 @@ class BaseRequest(object):
     headers = cached_property(headers)
 
     def path(self):
-        """
-        Requested path as unicode.  This works a bit like the regular path
+        """Requested path as unicode.  This works a bit like the regular path
         info in the WSGI environment but will always include a leading slash,
         even if the URL root is accessed.
         """
@@ -262,8 +252,7 @@ class BaseRequest(object):
         '''The transmission method. (For example ``'GET'`` or ``'POST'``).''')
 
     def access_route(self):
-        """
-        If an forwarded header exists this is a list of all ip addresses
+        """If an forwarded header exists this is a list of all ip addresses
         from the client ip to the last proxy server.
         """
         if 'HTTP_X_FORWARDED_FOR' in self.environ:
@@ -302,10 +291,9 @@ class BaseRequest(object):
 
 
 class BaseResponse(object):
-    """
-    Base response class.  The most important fact about a response object is
-    that it's a regular WSGI application.  It's initialized with a couple of
-    response parameters (headers, body, status code etc.) and will start a
+    """Base response class.  The most important fact about a response object
+    is that it's a regular WSGI application.  It's initialized with a couple
+    of response parameters (headers, body, status code etc.) and will start a
     valid WSGI response when called with the environ and start response
     callable.
 
@@ -350,10 +338,9 @@ class BaseResponse(object):
 
     def __init__(self, response=None, status=None, headers=None,
                  mimetype=None, content_type=None):
-        """
-        Response can be any kind of iterable or string.  If it's a string it's
-        considered being an iterable with one item which is the string passed.
-        headers can be a list of tuples or a `Headers` object.
+        """Response can be any kind of iterable or string.  If it's a string
+        it's considered being an iterable with one item which is the string
+        passed.  Headers can be a list of tuples or a `Headers` object.
 
         Special note for `mimetype` and `content_type`.  For most mime types
         `mimetype` and `content_type` work the same, the difference affects
@@ -390,8 +377,7 @@ class BaseResponse(object):
             self.status = status
 
     def force_type(cls, response, environ=None):
-        """
-        Enforce that the WSGI response is a response object of the current
+        """Enforce that the WSGI response is a response object of the current
         type.  Werkzeug will use the `BaseResponse` internally in many
         situations like the exceptions.  If you call `get_response` on an
         exception you will get back a regular `BaseResponse` object, even if
@@ -424,13 +410,12 @@ class BaseResponse(object):
     force_type = classmethod(force_type)
 
     def from_app(cls, app, environ, buffered=False):
-        """
-        Create a new response object from an application output.  This works
-        best if you pass it an application that returns a generator all the
-        time.  Sometimes applications may use the `write()` callable returned
-        by the `start_response` function.  This tries to resolve such edge
-        cases automatically.  But if you don't get the expected output you
-        should set `buffered` to `True` which enforces buffering.
+        """Create a new response object from an application output.  This
+        works best if you pass it an application that returns a generator all
+        the time.  Sometimes applications may use the `write()` callable
+        returned by the `start_response` function.  This tries to resolve such
+        edge cases automatically.  But if you don't get the expected output
+        you should set `buffered` to `True` which enforces buffering.
         """
         return cls(*run_wsgi_app(app, environ, buffered))
     from_app = classmethod(from_app)
@@ -450,8 +435,7 @@ class BaseResponse(object):
     del _get_status_code, _set_status_code
 
     def _get_data(self):
-        """
-        The string representation of the request body.  Whenever you access
+        """The string representation of the request body.  Whenever you access
         this property the request iterable is encoded and flattened.  This
         can lead to unwanted behavior if you stream big data.
         """
@@ -464,8 +448,7 @@ class BaseResponse(object):
     del _get_data, _set_data
 
     def iter_encoded(self, charset=None):
-        """
-        Iter the response encoded with the encoding specified.  If no
+        """Iter the response encoded with the encoding specified.  If no
         encoding is given the encoding from the class is used.  Note that
         this does not encode data that is already a bytestring.
         """
@@ -478,8 +461,7 @@ class BaseResponse(object):
 
     def set_cookie(self, key, value='', max_age=None, expires=None,
                    path='/', domain=None, secure=None, httponly=False):
-        """
-        Sets a cookie. The parameters are the same as in the cookie `Morsel`
+        """Sets a cookie. The parameters are the same as in the cookie `Morsel`
         object in the Python standard library but it accepts unicode data too:
 
         - `max_age` should be a number of seconds, or `None` (default) if the
@@ -501,16 +483,14 @@ class BaseResponse(object):
         self.set_cookie(key, expires=0, max_age=0, path=path, domain=domain)
 
     def header_list(self):
-        """
-        This returns the headers in the target charset as list.  It's used in
-        __call__ to get the headers for the response.
+        """This returns the headers in the target charset as list.  It's used
+        in __call__ to get the headers for the response.
         """
         return self.headers.to_list(self.charset)
     header_list = property(header_list, doc=header_list.__doc__)
 
     def is_streamed(self):
-        """
-        If the response is streamed (the response is not a sequence) this
+        """If the response is streamed (the response is not a sequence) this
         property is `True`.  In this case streamed means that there is no
         information about the number of iterations.  This is usully `True`
         if a generator is passed to the response object.
@@ -526,8 +506,7 @@ class BaseResponse(object):
     is_streamed = property(is_streamed, doc=is_streamed.__doc__)
 
     def fix_headers(self, environ):
-        """
-        This is automatically called right before the response is started
+        """This is automatically called right before the response is started
         and should fix common mistakes in headers.  For example location
         headers are joined with the root URL here.
         """
@@ -543,10 +522,8 @@ class BaseResponse(object):
             self.response.close()
 
     def freeze(self):
-        """
-        Call this method if you want to make your response object ready for
-        pickeling.  This buffers the generator if there is one.
-        """
+        """Call this method if you want to make your response object ready for
+        pickeling.  This buffers the generator if there is one."""
         BaseResponse.data.__get__(self)
 
     def __call__(self, environ, start_response):
@@ -564,8 +541,7 @@ class BaseResponse(object):
 
 
 class AcceptMixin(object):
-    """
-    A mixin for classes with an `environ` attribute to get and all the HTTP
+    """A mixin for classes with an `environ` attribute to get and all the HTTP
     accept headers as `Accept` objects.  This can be mixed in request objects
     or any other object that has a WSGI environ available as `environ`.
     """
@@ -581,11 +557,9 @@ class AcceptMixin(object):
     accept_charsets = cached_property(accept_charsets)
 
     def accept_encodings(self):
-        """
-        List of encodings this client accepts.  Encodings in a HTTP term are
-        compression encodings such as gzip.  For charsets have a look at
-        `accept_charset`.
-        """
+        """List of encodings this client accepts.  Encodings in a HTTP term
+        are compression encodings such as gzip.  For charsets have a look at
+        `accept_charset`."""
         return parse_accept_header(self.environ.get('HTTP_ACCEPT_ENCODING'))
     accept_encodings = cached_property(accept_encodings)
 
@@ -596,8 +570,7 @@ class AcceptMixin(object):
 
 
 class ETagRequestMixin(object):
-    """
-    Add entity tag and cache descriptors to a request object or object with
+    """Add entity tag and cache descriptors to a request object or object with
     an WSGI environment available as `environ`.  This not only provides
     access to etags but also to the cache control header.
     """
@@ -630,8 +603,7 @@ class ETagRequestMixin(object):
 
 
 class UserAgentMixin(object):
-    """
-    Adds a `user_agent` attribute to the request object which contains the
+    """Adds a `user_agent` attribute to the request object which contains the
     parsed user agent of the browser that triggered the request as `UserAgent`
     object.
     """
@@ -649,8 +621,7 @@ class UserAgentMixin(object):
 
 
 class AuthorizationMixin(object):
-    """
-    Adds an `authorization` property that represents the parsed value of
+    """Adds an `authorization` property that represents the parsed value of
     the `Authorization` header as `Authorization` object.
     """
 
@@ -662,16 +633,14 @@ class AuthorizationMixin(object):
 
 
 class ETagResponseMixin(object):
-    """
-    Adds extra functionality to a response object for etag and cache
+    """Adds extra functionality to a response object for etag and cache
     handling.  This mixin requires an object with at least a `headers`
     object that implements a dict like interface similar to `Headers`.
     """
 
     def cache_control(self):
-        """
-        The Cache-Control general-header field is used to specify directives
-        that MUST be obeyed by all caching mechanisms along the
+        """The Cache-Control general-header field is used to specify
+        directives that MUST be obeyed by all caching mechanisms along the
         request/response chain.
         """
         def on_update(cache_control):
@@ -684,9 +653,8 @@ class ETagResponseMixin(object):
     cache_control = property(cache_control, doc=cache_control.__doc__)
 
     def make_conditional(self, request_or_environ):
-        """
-        Make the response conditional to the request.  This method works best
-        if an etag was defined for the response already.  The `add_etag`
+        """Make the response conditional to the request.  This method works
+        best if an etag was defined for the response already.  The `add_etag`
         method can be used to do that.  If called without etag just the date
         header is set.
 
@@ -720,15 +688,13 @@ class ETagResponseMixin(object):
         self.headers['ETag'] = quote_etag(etag, weak)
 
     def get_etag(self):
-        """
-        Return a tuple in the form ``(etag, is_weak)``.  If there is no
+        """Return a tuple in the form ``(etag, is_weak)``.  If there is no
         ETag the return value is ``(None, None)``.
         """
         return unquote_etag(self.headers.get('ETag'))
 
     def freeze(self, no_etag=False):
-        """
-        Call this method if you want to make your response object ready for
+        """Call this method if you want to make your response object ready for
         pickeling.  This buffers the generator if there is one.  This also
         sets the etag unless `no_etag` is set to `True`.
         """
@@ -738,8 +704,7 @@ class ETagResponseMixin(object):
 
 
 class ResponseStream(object):
-    """
-    A file descriptor like object used by the `ResponseStreamMixin` to
+    """A file descriptor like object used by the `ResponseStreamMixin` to
     represent the body of the stream.  It directly pushes into the response
     iterable of the response object.
     """
@@ -780,10 +745,9 @@ class ResponseStream(object):
 
 
 class ResponseStreamMixin(object):
-    """
-    Mixin for `BaseRequest` subclasses.  Classes that inherit from this mixin
-    will automatically get a `stream` property that provides a write-only
-    interface to the response iterable.
+    """Mixin for `BaseRequest` subclasses.  Classes that inherit from this
+    mixin will automatically get a `stream` property that provides a
+    write-only interface to the response iterable.
     """
 
     def stream(self):
@@ -793,8 +757,7 @@ class ResponseStreamMixin(object):
 
 
 class CommonResponseDescriptorsMixin(object):
-    """
-    A mixin for `BaseResponse` subclasses.  Response objects that mix this
+    """A mixin for `BaseResponse` subclasses.  Response objects that mix this
     class in will automatically get descriptors for a couple of HTTP headers
     with automatic type conversion.
     """
@@ -919,9 +882,7 @@ class CommonResponseDescriptorsMixin(object):
 
 
 class WWWAuthenticateMixin(object):
-    """
-    Adds a `www_authenticate` property to a response object.
-    """
+    """Adds a `www_authenticate` property to a response object."""
 
     def www_authenticate(self):
         """The ``WWW-Authenticate`` header in a parsed form."""
@@ -937,8 +898,7 @@ class WWWAuthenticateMixin(object):
 
 class Request(BaseRequest, AcceptMixin, ETagRequestMixin,
               UserAgentMixin, AuthorizationMixin):
-    """
-    Full featured request object implementing the following mixins:
+    """Full featured request object implementing the following mixins:
 
     - `AcceptMixin` for accept header parsing
     - `ETagRequestMixin` for etag and cache control handling
@@ -950,8 +910,7 @@ class Request(BaseRequest, AcceptMixin, ETagRequestMixin,
 class Response(BaseResponse, ETagResponseMixin, ResponseStreamMixin,
                CommonResponseDescriptorsMixin,
                WWWAuthenticateMixin):
-    """
-    Full featured response object implementing the following mixins:
+    """Full featured response object implementing the following mixins:
 
     - `ETagResponseMixin` for etag and cache control handling
     - `ResponseStreamMixin` to add support for the `stream` property
