@@ -104,7 +104,7 @@ class AtomFeed(object):
         self.rights = kwargs.get('rights')
         self.rights_type = kwargs.get('rights_type')
         self.subtitle = kwargs.get('subtitle')
-        self.subtitle_type = kwargs.get('subtitle_type')
+        self.subtitle_type = kwargs.get('subtitle_type', 'text')
         self.generator = kwargs.get('generator')
         if self.generator is None:
             self.generator = self.default_generator
@@ -131,6 +131,7 @@ class AtomFeed(object):
         if len(args) == 1 and not kwargs and isinstance(args[0], FeedEntry):
             self.entries.append(args[0])
         else:
+            kwargs['feed_url'] = self.feed_url
             self.entries.append(FeedEntry(*args, **kwargs))
 
     def __repr__(self):
@@ -218,7 +219,7 @@ class AtomFeed(object):
 class FeedEntry(object):
     """Represents a single entry in a feed."""
 
-    def __init__(self, title=None, content=None, **kwargs):
+    def __init__(self, title=None, content=None, feed_url=None, **kwargs):
         """Holds an Atom feed entry.
 
         :Parameters:
@@ -272,7 +273,7 @@ class FeedEntry(object):
         Everywhere where a list is demanded, any iterable can be used.
         """
         self.title = title
-        self.title_type = kwargs.get('title_type', 'html')
+        self.title_type = kwargs.get('title_type', 'text')
         self.content = content
         self.content_type = kwargs.get('content_type', 'html')
         self.url = kwargs.get('url')
@@ -284,7 +285,7 @@ class FeedEntry(object):
         self.published = kwargs.get('published')
         self.rights = kwargs.get('rights')
         self.links = kwargs.get('links', [])
-        self.xml_base = kwargs.get('xml_base', self.url)
+        self.xml_base = kwargs.get('xml_base', feed_url)
 
         if not hasattr(self.author, '__iter__') \
            or isinstance(self.author, (basestring, dict)):
