@@ -149,9 +149,9 @@ class LocalManager(object):
         if locals is None:
             self.locals = []
         else:
-            if isinstance(locals, (list, set, frozenset, tuple)):
-                self.locals = list(objects)
-            else:
+            try:
+                self.locals = list(locals)
+            except TypeError:
                 self.locals = [locals]
 
     def get_ident(self):
