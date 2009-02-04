@@ -34,7 +34,6 @@ r"""
         print iterator.next()       # prints otherthing
         iterator.next()             # raises StopIteration
 
-
     .. _greenlet: http://codespeak.net/py/dist/greenlet.html
 
     :copyright: (c) 2009 by the Werkzeug Team, see AUTHORS for more details.

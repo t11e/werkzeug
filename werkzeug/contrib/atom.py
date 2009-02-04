@@ -3,8 +3,10 @@
     werkzeug.contrib.atom
     ~~~~~~~~~~~~~~~~~~~~~
 
-    This module provides a class called :class:`AtomFeed` which can be used
-    to generate Atom feeds.
+    This module provides a class called :class:`AtomFeed` which can be
+    used to generate feeds in the Atom syndication format (see `RFC 4287`_).
+
+    .. _RFC 4287: http://tools.ietf.org/html/rfc4287
 
     Example::
 
@@ -19,7 +21,7 @@
             return feed.get_response()
 
     :copyright: (c) 2009 by the Werkzeug Team, see AUTHORS for more details.
-    :license: BSD.
+    :license: BSD, see LICENSE for more details.
 """
 from datetime import datetime
 from werkzeug.utils import escape
