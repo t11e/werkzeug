@@ -93,7 +93,6 @@ from hmac import new as hmac
 from datetime import datetime
 from time import time, mktime, gmtime
 from werkzeug import url_quote_plus, url_unquote_plus
-from werkzeug._internal import _date_to_unix
 from werkzeug.contrib.sessions import ModificationTrackingDict
 
 
@@ -222,7 +221,11 @@ class SecureCookie(ModificationTrackingDict):
         if self.secret_key is None:
             raise RuntimeError('no secret key defined')
         if expires:
-            self['_expires'] = _date_to_unix(expires)
+            if isinstance(expires, datetime):
+                expires = expires.utctimetuple()
+            elif isinstance(expires, (int, long, float)):
+                expires = gmtime(expires)
+            self['_expires'] = int(mktime(expires))
         result = []
         mac = hmac(self.secret_key, None, self.hash_method)
         for key, value in sorted(self.items()):

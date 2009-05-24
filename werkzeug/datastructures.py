@@ -196,16 +196,6 @@ class ImmutableTypeConversionDict(ImmutableDictMixin, TypeConversionDict):
     .. versionadded:: 0.5
     """
 
-    def copy(self):
-        """Return a shallow mutable copy of this object.  Keep in mind that
-        the standard library's :func:`copy` function is a no-op for this class
-        like for any other python immutable type (eg: :class:`tuple`).
-        """
-        return TypeConversionDict(self)
-
-    def __copy__(self):
-        return self
-
 
 class MultiDict(TypeConversionDict):
     """A :class:`MultiDict` is a dictionary subclass customized to deal with
@@ -255,7 +245,7 @@ class MultiDict(TypeConversionDict):
 
     def __init__(self, mapping=None):
         if isinstance(mapping, MultiDict):
-            dict.__init__(self, ((k, l[:]) for k, l in mapping.iterlists()))
+            dict.__init__(self, ((k, l[:]) for k, l in mapping.lists()))
         elif isinstance(mapping, dict):
             tmp = {}
             for key, value in mapping.iteritems():
@@ -368,17 +358,13 @@ class MultiDict(TypeConversionDict):
             default_list = dict.__getitem__(self, key)
         return default_list
 
-    def items(self, multi=False):
-        """Return a list of ``(key, value)`` pairs.
-
-        :param multi: If set to `True` the list returned will have a
-                      pair for each value of each key.  Ohterwise it
-                      will only contain pairs for the first value of
-                      each key.
+    def items(self):
+        """Return a list of ``(key, value)`` pairs, where value is the first
+        item in the list associated with the key.
 
         :return: a :class:`list`
         """
-        return list(self.iteritems(multi))
+        return [(key, self[key]) for key in self.iterkeys()]
 
     #: Return a list of ``(key, value)`` pairs, where values is the list of
     #: all values associated with the key.
@@ -400,19 +386,15 @@ class MultiDict(TypeConversionDict):
         >>> d = MultiDict({"foo": [1, 2, 3]})
         >>> zip(d.keys(), d.listvalues()) == d.lists()
         True
-
+        
         :return: a :class:`list`
         """
         return list(self.iterlistvalues())
 
-    def iteritems(self, multi=False):
+    def iteritems(self):
         """Like :meth:`items` but returns an iterator."""
         for key, values in dict.iteritems(self):
-            if multi:
-                for value in values:
-                    yield key, value
-            else:
-                yield key, values[0]
+            yield key, values[0]
 
     def iterlists(self):
         """Return a list of all values associated with a key.
@@ -509,7 +491,11 @@ class MultiDict(TypeConversionDict):
             raise self.KeyError(str(e))
 
     def __repr__(self):
-        return '%s(%r)' % (self.__class__.__name__, self.items(multi=True))
+        tmp = []
+        for key, values in self.iterlists():
+            for value in values:
+                tmp.append((key, value))
+        return '%s(%r)' % (self.__class__.__name__, tmp)
 
 
 class Headers(object):
@@ -991,13 +977,11 @@ class CombinedMultiDict(ImmutableMultiDictMixin, MultiDict):
             rv.update(d.keys())
         return list(rv)
 
-    def iteritems(self, multi=False):
+    def iteritems(self):
         found = set()
         for d in self.dicts:
-            for key, value in d.iteritems(multi):
-                if multi:
-                    yield key, value
-                elif key not in found:
+            for key, value in d.iteritems():
+                if key not in found:
                     found.add(key)
                     yield key, value
 
@@ -1008,8 +992,8 @@ class CombinedMultiDict(ImmutableMultiDictMixin, MultiDict):
     def values(self):
         return list(self.itervalues())
 
-    def items(self, multi=False):
-        return list(self.iteritems(multi))
+    def items(self):
+        return list(self.iteritems())
 
     def iterlists(self):
         rv = {}
@@ -1105,32 +1089,12 @@ class ImmutableDict(ImmutableDictMixin, dict):
 
     __repr__ = _proxy_repr(dict)
 
-    def copy(self):
-        """Return a shallow mutable copy of this object.  Keep in mind that
-        the standard library's :func:`copy` function is a no-op for this class
-        like for any other python immutable type (eg: :class:`tuple`).
-        """
-        return dict(self)
-
-    def __copy__(self):
-        return self
-
 
 class ImmutableMultiDict(ImmutableMultiDictMixin, MultiDict):
     """An immutable :class:`MultiDict`.
 
     .. versionadded:: 0.5
     """
-
-    def copy(self):
-        """Return a shallow mutable copy of this object.  Keep in mind that
-        the standard library's :func:`copy` function is a no-op for this class
-        like for any other python immutable type (eg: :class:`tuple`).
-        """
-        return MultiDict(self)
-
-    def __copy__(self):
-        return self
 
 
 class Accept(ImmutableList):

@@ -147,7 +147,7 @@ class BaseRequest(object):
         charset = kwargs.pop('charset', cls.charset)
         environ = kwargs.pop('environ', None)
         if environ is not None:
-            from warnings import warn
+            from warnings import DeprecationWarning
             warn(DeprecationWarning('The environ parameter to from_values'
                                     ' is now called environ_overrides for'
                                     ' consistency with EnvironBuilder'),
@@ -221,38 +221,22 @@ class BaseRequest(object):
                 raise RuntimeError('A shallow request tried to consume '
                                    'form data.  If you really want to do '
                                    'that, set `shallow` to False.')
-            data = None
             if self.environ['REQUEST_METHOD'] in ('POST', 'PUT'):
-                try:
-                    data = parse_form_data(self.environ, self._get_file_stream,
-                                           self.charset, self.encoding_errors,
-                                           self.max_form_memory_size,
-                                           self.max_content_length,
-                                           cls=ImmutableMultiDict,
-                                           silent=False)
-                except ValueError, e:
-                    self._form_parsing_failed(e)
-            if data is None:
+                data = parse_form_data(self.environ, self._get_file_stream,
+                                       self.charset, self.encoding_errors,
+                                       self.max_form_memory_size,
+                                       self.max_content_length,
+                                       cls=ImmutableMultiDict)
+            else:
                 data = (_empty_stream, ImmutableMultiDict(),
                         ImmutableMultiDict())
             self._data_stream, self._form, self._files = data
 
-    def _form_parsing_failed(self, error):
-        """Called if parsing of form data failed.  This is currently only
-        invoked for failed multipart uploads.  By default this method does
-        nothing.
-
-        :param error: a `ValueError` object with a message why the
-                      parsing failed.
-
-        .. versionadded:: 0.5.1
-        """
-
     @property
     def stream(self):
         """The parsed stream if the submitted data was not multipart or
-        urlencoded form data.  This stream is the stream left by the form data
-        parser module after parsing.  This is *not* the WSGI input stream but
+        urlencoded form data.  This stream is the stream left by the CGI
+        module after parsing.  This is *not* the WSGI input stream but
         a wrapper around it that ensures the caller does not accidentally
         read past `Content-Length`.
         """
@@ -265,7 +249,7 @@ class BaseRequest(object):
 
     @cached_property
     def args(self):
-        """The parsed URL parameters as :class:`ImmutableMultiDict`."""
+        """The parsed URL parameters as :class:`MultiDict`."""
         return url_decode(self.environ.get('QUERY_STRING', ''), self.charset,
                           errors=self.encoding_errors,
                           cls=ImmutableMultiDict)
@@ -284,8 +268,8 @@ class BaseRequest(object):
     @property
     def form(self):
         """Form parameters.  Currently it's not guaranteed that the
-        :class:`ImmutableMultiDict` returned by this function is ordered in
-        the same way as the submitted form data.
+        :class:`MultiDict` returned by this function is ordered in the same
+        way as the submitted form data.
         """
         self._load_form_data()
         return self._form
