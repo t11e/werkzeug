@@ -95,7 +95,7 @@ class DebuggedApplication(object):
                 # more, better log something into the error log and fall
                 # back gracefully.
                 environ['wsgi.errors'].write(
-                    'Debugging middleware caught exception in streamed '
+                    'Debugging middleware catched exception in streamed '
                     'response at a point where response headers were already '
                     'sent.\n')
             else:

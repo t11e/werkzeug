@@ -843,12 +843,14 @@ block goes right **before** the except block of the
 :exc:`~exceptions.HTTPException`::
 
     try:
-        ... # this stays the same
+        # this stays the same
+        pass
     except NotFound, e:
         response = views.not_found(request)
         response.status_code = 404
     except HTTPException, e:
-        ... # this stays the same
+        # this stays the same
+        pass
 
 Now add a template ``templates/not_found.html`` and you're done:
 

@@ -548,13 +548,6 @@ class EnvironBuilder(object):
         return cls(self.get_environ())
 
 
-class ClientRedirectError(Exception):
-    """
-    If a redirect loop is detected when using follow_redirects=True with
-    the :cls:`Client`, then this exception is raised.
-    """
-
-
 class Client(object):
     """This class allows to send requests to a wrapped application.
 
@@ -646,34 +639,29 @@ class Client(object):
                 # code from the response.
                 self.redirect_client = Client(self.application)
                 self.redirect_client.cookie_jar = self.cookie_jar
-
             redirect = dict(rv[2])['Location']
-            scheme, netloc, script_root, qs, anchor = urlparse.urlsplit(redirect)
-            base_url = urlparse.urlunsplit((scheme, netloc, '', '', '')).rstrip('/') + '/'
-            host = get_host(create_environ('/', base_url, query_string=qs)).split(':', 1)[0]
+            host = get_host(create_environ('/', redirect)).split(':', 1)[0]
             if get_host(environ).split(':', 1)[0] != host:
                 raise RuntimeError('%r does not support redirect to '
                                    'external targets' % self.__class__)
 
+            scheme, netloc, script_root, qs, anchor = urlparse.urlsplit(redirect)
             redirect_chain.append((redirect, status_code))
 
-            # the redirect request should be a new request, and not be based on
-            # the old request
-            redirect_kwargs = {}
-            redirect_kwargs.update({
-                'path':             script_root,
-                'base_url':         base_url,
+            kwargs.update({
+                'base_url':         urlparse.urlunsplit((scheme, host,
+                                    script_root, '', '')).rstrip('/') + '/',
                 'query_string':     qs,
                 'as_tuple':         True,
                 'buffered':         buffered,
-                'follow_redirects': False,
+                'follow_redirects': False
             })
-            environ, rv = self.redirect_client.open(**redirect_kwargs)
+            environ, rv = self.redirect_client.open(*args, **kwargs)
             status_code = int(rv[1].split(None, 1)[0])
 
             # Prevent loops
             if redirect_chain[-1] in redirect_chain[0:-1]:
-                raise ClientRedirectError("loop detected")
+                break
 
         response = self.response_wrapper(*rv)
         if as_tuple:
